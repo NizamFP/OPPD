@@ -1,0 +1,160 @@
+/*************************************************************
+
+  This is a simple demo of sending and receiving some data.
+  Be sure to check out other examples!
+ *************************************************************/
+//BLYNKDEACT
+/* 
+Fill-in information from Blynk Device Info here 
+#define BLYNK_TEMPLATE_ID           "TMPL6Jwp3nNpe"
+#define BLYNK_TEMPLATE_NAME         "OPPD"
+#define BLYNK_AUTH_TOKEN            "rV98KC5X3fSip9v-gp8VLr0kFCHCLA2Y"
+
+// Comment this out to disable prints and save space 
+#define BLYNK_PRINT Serial
+
+
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <BlynkSimpleEsp32.h>
+*/ 
+//BLYNKDEACT
+
+#include <DHT.h>
+#include <LiquidCrystal_I2C.h>
+#define DHT11_PIN 14
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+DHT dht11(DHT11_PIN, DHT11);
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+//#include <Adafruit_SSD1306.h>
+
+const int AirValue = 4095;   //you need to replace this value with Value_1
+const int WaterValue = 1745;  //you need to replace this value with Value_2
+const int SensorPin = 15;
+int soilMoistureValue = 0;
+int soilmoisturepercent=0;
+int _moisture,sensor_analog;
+const int sensor_pin = A0;  /* Soil moisture sensor O/P pin */
+
+// Your WiFi credentials.
+// Set password to "" for open networks.
+// BLYNKDEACT (DELETE THIS STAR WHEN TESTING BLYNK, THIS IS UNACTIVATED TO SAVE MESSAGES)
+/* 
+char ssid[] = "1234";
+char pass[] = "nfp12347";
+BlynkTimer timer;
+
+// This function is called every time the Virtual Pin 0 state changes
+BLYNK_WRITE(V0)
+{
+  // Set incoming value from pin V0 to a variable
+  int value = param.asInt();
+
+  // Update state
+  Blynk.virtualWrite(V1, value);
+}
+
+// This function is called every time the device is connected to the Blynk.Cloud
+BLYNK_CONNECTED()
+{
+  // Change Web Link Button message to "Congratulations!"
+  Blynk.setProperty(V3, "offImageUrl", "https://static-image.nyc3.cdn.digitaloceanspaces.com/general/fte/congratulations.png");
+  Blynk.setProperty(V3, "onImageUrl",  "https://static-image.nyc3.cdn.digitaloceanspaces.com/general/fte/congratulations_pressed.png");
+  Blynk.setProperty(V3, "url", "https://docs.blynk.io/en/getting-started/what-do-i-need-to-blynk/how-quickstart-device-was-made");
+}
+
+// This function sends Arduino's uptime every second to Virtual Pin 2.
+void myTimerEvent()
+{
+  // You can send any value at any time.
+  // Please don't send more that 10 values per second.
+  Blynk.virtualWrite(V2, millis() / 1000);
+}
+*/
+//BLYNKDEACT
+void setup()
+{
+  // Debug console
+  Serial.begin(115200);
+  //BLYNKDEACT
+  //Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+  // You can also specify server:
+  //Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass, "blynk.cloud", 80);
+  //Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass, IPAddress(192,168,1,100), 8080);
+
+  // Setup a function to be called every second
+  // BLYNKDEACT
+  //timer.setInterval(1000L, myTimerEvent);
+  dht11.begin();
+  lcd.begin();
+  lcd.backlight();
+}
+
+unsigned long previousMillis = 0; // Declare previousMillis at the top
+const long interval = 3000;       // Set your desired interval (in milliseconds)
+
+void loop()
+{
+  // BLYNKDEACT
+  /*
+  Blynk.run();
+  timer.run();
+  */
+  float humi = dht11.readHumidity();
+  float tempC = 25;
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    float humi = dht11.readHumidity();
+    float tempC = dht11.readTemperature();
+    Serial.print("Temperature: ");
+    //BLYNKDEACT
+    //Blynk.virtualWrite(V11, tempC);
+    Serial.print(tempC);
+    Serial.print(" °C, Humidity: ");
+    //BLYNKDEACT
+    //Blynk.virtualWrite(V10, humi);
+    Serial.print(humi);
+    Serial.println(" %");
+    lcd.clear();
+
+  if (isnan(tempC) || isnan(humi)) {
+    lcd.setCursor(0, 0);
+    lcd.print("Failed");
+  } 
+  else {
+    lcd.setCursor(0, 0);
+    lcd.print("Temp: ");
+    lcd.print(tempC);
+    lcd.print(" C");
+ 
+    lcd.setCursor(0, 1);
+    lcd.print("Humi: ");
+    lcd.print(humi);
+    lcd.print("%");
+  }
+  soilMoistureValue = analogRead(sensor_pin);
+
+  //soilMoistureValue = analogRead(SensorPin);  //put Sensor insert into soil
+  Serial.println(soilMoistureValue);
+  soilmoisturepercent = map(soilMoistureValue, AirValue, WaterValue, 0, 100);
+
+  if(soilmoisturepercent > 100) {
+    Serial.println("100 %");
+  }
+
+  else if(soilmoisturepercent <0) {
+    Serial.println("0%");
+  }
+  else if (soilmoisturepercent >=0 && soilmoisturepercent <= 100) {
+    Serial.print(soilmoisturepercent);
+    Serial.println("%");
+  }
+  
+  
+
+  delay(2000);
+  }
+}
